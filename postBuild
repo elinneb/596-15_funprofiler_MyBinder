@@ -1,11 +1,7 @@
 #!/bin/bash
 
-mkdir raw_fastqs
-mkdir singleM_DB
-mkdir singleM_output
-curl -L https://zenodo.org/records/8419620/files/S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb.tar.gz?download=1 -o singleM_DB/S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb.tar.gz
-cd singleM_DB
-tar -xvzf S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb.tar.gz
-rm S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb.tar.gz
-cd ..
-export SINGLEM_METAPACKAGE_PATH=~/singleM_DB/S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb
+git clone https://github.com/KoslickiLab/funprofiler.git
+mkdir funprofiler_output
+mkdir funprofiler/DB
+cd funprofiler/DB 
+wget https://zenodo.org/records/10045253/files/KOs_sbt_scaled_1000_k_11.sbt.zip
