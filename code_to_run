@@ -23,7 +23,7 @@ cd ~
 ###############################################
 
 ### set your sample names that you loaded (change below sample names as necessary)
-samps=('L1_R' 'L1_S' 'L2_S')
+samps=('L1_R' 'L1_S')
 
 ### concatenate the fastq R1 and R2 files
 for i in "${samps[@]}"; do cat ~/fastq_inputs/"$i"_R1_sub.fastq.gz ~/fastq_inputs/"$i"_R2_sub.fastq.gz > ~/fastq_inputs/"$i"_cat.fastq.gz; done;
