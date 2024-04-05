@@ -1,58 +1,45 @@
 ###############################################
+### Funprofiler to get functional data on wetland soil metagenomes
+###############################################
+
+### make sure you're in the home directory
+
+cd ~
+
+
+###############################################
 ########## Load subsetted fastq files that you will analyze
 ###############################################
 
-# Double click on "raw_fastqs" folder
+# Double click on "fastq_inputs" folder
+# Choose 2 samples to analyze
 # Either drag and drop or click "upload files" icon to upload fastq files
-# Make sure R1 and R2 of each sample are included
+# Make sure R1 and R2 of each sample are included (should be 4 files total)
 # WAIT until the bar at the bottom of the screen is fully loaded!
 
 
-
 ###############################################
-########## Run a quality check on the raw reads
+### Concatenate fastq read-pair files into single fastq file
 ###############################################
 
-## Go into the folder with the fastq files
-cd ~/raw_fastqs
+### set your sample names that you loaded (change below sample names as necessary)
+samps=('L1_R' 'L1_S' 'L2_S')
 
-## Run a quality control check on ALL the raw fastq files in the folder "fastq_files"
-fastqc *.fastq.gz
-
-# run multiqc to get a single summary of the fasted outputs in one place
-multiqc .
-
-
-# My Binder isn't able to visualize multiqc data, so you need to download it to see
-# Right click on the "multiqc_report.html" output and click download
-# Click to open in your downloads folder - it should open in web browser
+### concatenate the fastq R1 and R2 files
+for i in "${samps[@]}"; do cat ~/fastq_inputs/"$i"_R1_sub.fastq.gz ~/fastq_inputs/"$i"_R2_sub.fastq.gz > ~/fastq_inputs/"$i"_cat.fastq.gz; done;
 
 
 
 ###############################################
-########## Trim and filter the raw reads to output trimmed and filtered sequencing reads
+### Run funprofiler to get functional profiles of subsetted, concatenated samples
 ###############################################
 
-## Normally one trims/filters the raw sequencing reads before taxonomic profiling, but SingleM performs better on raw untrimmed reads.
+### run funprofiler, kmer 11
+for i in "${samps[@]}"; do python ~/funprofiler/funcprofiler.py ~/fastq_inputs/"$i"_cat.fastq.gz ~/funprofiler/DB/KOs_sbt_scaled_1000_k_11.sbt.zip 11 1000 ~/funprofiler_output/"$i"_ko_profiles -g ~/funprofiler_output/"$i"_gather_out; done;
 
 
 
-###############################################
-########## Run SingleM to perform taxonomic profiling
-###############################################
+### convert csv outputs to tsv
+for i in "${samps[@]}"; do awk -F, '{ OFS="\t"; $1=$1; print }' ~/funprofiler_output/"$i"_ko_profiles > ~/funprofiler_output/"$i"_ko_profiles.tsv; done;
 
-
-##### START WITH RAW READS FOR SINGLEM #####
-
-## Run SingleM on samples
-
-## If needed, reset the path to the SingleM database files
-export SINGLEM_METAPACKAGE_PATH=~/singleM_DB/S3.2.1.GTDB_r214.metapackage_20231006.smpkg.zb
-
-
-## Run SingleM on batch samples
-# Change samps prefixes for samples you are analyzing
-
-samps=('L1_R' 'S2_S' 'S3_S' 'S4_S')
-for i in "${samps[@]}"; do singlem pipe -1 "$i"_R1_sub.fastq.gz -2 "$i"_R2_sub.fastq.gz -p ~/singleM_output/"$i"_singlem_profile.tsv --taxonomic-profile-krona ~/singleM_output/"$i"_singlem_krona.html; done;
 
