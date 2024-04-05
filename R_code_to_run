@@ -1,0 +1,70 @@
+install.packages("tidyverse")
+library(tidyverse)
+
+# Set working directory to where funprofiler outputs are
+setwd("~/funprofiler_ko_profiles/")
+
+# Get a list of all .sf files in the directory
+file_list <- list.files("~/Desktop/596-15_funprofiler_combine/funprofiler_ko_profiles/",pattern="\\_ko_profiles.tsv$")
+
+# Use purrr::map() to read all files into a list of dataframes
+data_list <- map(file_list, ~read.delim(.x, header = TRUE) %>% dplyr::select(ko_id, abundance))
+
+# Add names from the file list to the data_list of dataframes
+names(data_list) <- file_list
+
+# Set working directory to where KEGG pathway data file is
+setwd("~")
+
+# Read in KEGG ID file
+ko_ids <- read.delim("kegg_koids.txt", sep = "\t", header = T, stringsAsFactors=FALSE)
+
+# Add "ko:" prefix to ko_id column to match up with funprofiler outputs
+ko_ids$ko_id <- paste("ko:", ko_ids$ko_id, sep = "")
+
+
+
+############################################################## Process the data
+# Use purrr::reduce() to join dataframes by shared variable Name
+joined_data <- reduce(data_list, full_join, by = "ko_id")
+
+# Extract data_list names
+sam_names <- names(data_list)
+# Only keep the sam_names text to the left of the second "_"
+sam_names <- str_extract(names(data_list), "^[^_]+_[^_]+")
+# Rename coverage columns to data_list names
+names(joined_data)[grep("abundance", names(joined_data))] <- sam_names
+
+# Replace NA with 0 in the entire data frame
+joined_data[is.na(joined_data)] <- 0
+
+
+# Merge join_data with KEGG pathway list by KO ID
+funprofiler_data <- merge(joined_data, ko_ids, by = "ko_id")
+
+# Write table for KO ID abundances
+write.table(funprofiler_data, "funprofiler_KO_data.txt", row.names = FALSE, quote = F, sep="\t")
+
+
+
+###### Incorporate pathway data
+# Read in Pathway Info file
+ko_ids_wpathways <- read.delim("KO_IDs_and_Pathway_List.txt", sep = "\t", header = T, stringsAsFactors=FALSE)
+
+# Join KO ID list with link data frame
+funprofiler_data_wpathways <- merge(funprofiler_data, ko_ids_wpathways, by = "ko_id")
+
+# Write table for KO ID abundances
+write.table(funprofiler_data_wpathways, "funprofiler_KOwPathway_data.txt", row.names = FALSE, quote = F, sep="\t")
+
+
+
+###### Collapse data based on metabolic pathway
+# For Pathway Agglom
+pathway_data <- funprofiler_data_wpathways %>% group_by(kegg_pathway_name) %>% summarise(across(2:40, sum, na.rm = TRUE)) %>% ungroup()
+# Write table for Pathway abundances
+write.table(pathway_data, "funprofiler_pathway_data.txt", row.names = FALSE, quote = F, sep="\t")
+
+
+
+
