@@ -5,7 +5,7 @@ library(tidyverse)
 setwd("~/funprofiler_ko_profiles/")
 
 # Get a list of all .sf files in the directory
-file_list <- list.files("~/Desktop/596-15_funprofiler_combine/funprofiler_ko_profiles/",pattern="\\_ko_profiles.tsv$")
+file_list <- list.files("~/funprofiler_ko_profiles/",pattern="\\_ko_profiles.tsv$")
 
 # Use purrr::map() to read all files into a list of dataframes
 data_list <- map(file_list, ~read.delim(.x, header = TRUE) %>% dplyr::select(ko_id, abundance))
