@@ -1,6 +1,7 @@
 #!/bin/bash
 
 git clone https://github.com/KoslickiLab/funprofiler.git
+mkdir raw_fastqs
 mkdir funprofiler_output
 mkdir funprofiler/DB
 cd funprofiler/DB 
